@@ -1,51 +1,45 @@
 pipeline {
-
+  agent any
   environment {
     registry = "docker.io/cubensquare/flask"
     registry_mysql = "docker.io/cubensquare/mysql"
     dockerImage = ""
   }
-
-  agent any
-    stages {
-  
+  stages {
     stage('Checkout Source') {
       steps {
         git 'https://github.com/mgsgoms/Docker-Project.git'
       }
     }
-
     stage('Build image') {
-      steps{
+      steps {
         script {
-          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+          dockerImage = docker.build(registry + ":$BUILD_NUMBER")
         }
       }
     }
-
     stage('Push Image') {
-      steps{
+      steps {
         script {
-          docker.withRegistry( "" ) {
+          docker.withRegistry('', '') {
             dockerImage.push()
           }
         }
       }
     }
-
     stage('current') {
-      steps{
-        dir("${env.WORKSPACE}/mysql"){
+      steps {
+        dir("${env.WORKSPACE}/mysql") {
           sh "pwd"
-          }
-      }
-   }
-   stage('Build mysql image') {
-     steps{
-       sh 'docker build -t "docker.io/cubensquare/mysql:$BUILD_NUMBER"  "$WORKSPACE"/mysql'
-        sh 'docker push "docker.io/cubensquare/mysql:$BUILD_NUMBER"'
         }
       }
+    }
+    stage('Build mysql image') {
+      steps {
+        sh 'docker build -t "docker.io/cubensquare/mysql:$BUILD_NUMBER" "$WORKSPACE"/mysql'
+        sh 'docker push "docker.io/cubensquare/mysql:$BUILD_NUMBER"'
+      }
+    }
     stage('Deploy App') {
       steps {
         script {
@@ -53,7 +47,5 @@ pipeline {
         }
       }
     }
-
   }
-
 }
